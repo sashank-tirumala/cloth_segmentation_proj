@@ -1,0 +1,15 @@
+{
+    "n_feature": 2,
+    "n_class": 2,
+    "transform": true,
+    "lr": 1e-3,
+    "momentum": 0,
+    "w_decay": 0,
+    "step_size": 30,
+    "gamma": 0.5,
+    "datasize": "",
+    "runspath": "/home/sashank/deepl_project/cloth-segmentation/train_runs",
+    "datapath": "/home/sashank/deepl_project/data/dataset/test/",
+    "batch_size": 8, 
+    "epochs": 4
+}
