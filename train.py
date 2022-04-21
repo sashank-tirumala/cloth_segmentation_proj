@@ -12,7 +12,6 @@ from tqdm import tqdm
 from datetime import datetime
 from unet import unet
 from data_loader import TowelDataset, TowelDataset_1
-
 import torch 
 import torch.nn as nn
 import torch.optim as optim
@@ -21,15 +20,21 @@ from torch.optim import lr_scheduler
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from utils import weights_init, compute_map, compute_iou, compute_auc, preprocessHeatMap 
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 from PIL import Image
+import wandb
+import argparse
+
 
 class BaseTrain:
     def __init__(self, cfgs):
         self.cfgs = cfgs
         self.init_dirs()
         self.init_datasets()
-        self.init_tboard()
+        self.n_class = self.cfgs["n_class"]
+        self.iou_scores = np.zeros((self.cfgs["epochs"], self.n_class))
+        self.pixel_scores = np.zeros(self.cfgs["epochs"])
+        # self.init_tboard()
 
     def init_dirs(self):
         runspath = self.cfgs["runspath"] 
@@ -138,6 +143,7 @@ class TrainSeg(BaseTrain):
 
                 if iter % 10 == 0:
                     print("epoch%d, iter%d, loss: %0.5f" % (epoch, iter, loss))
+                wandb.log({"loss_step":loss})
 
                 batch_maps, batch_ious, batch_aucs = self.metrics(outputs, labels)
                 maps += batch_maps
@@ -153,7 +159,10 @@ class TrainSeg(BaseTrain):
             # Write to tensorboard
             names = ['loss', 'MAP', 'meanIOU', 'meanAUC']
             values = [np.nanmean(losses), pixel_map, np.nanmean(ious), mean_auc]
-            self.tboard(self.train_writer, names, values, epoch)
+            # self.tboard(self.train_writer, names, values, epoch)
+            wandb.log({"loss_epoch": np.nanmean(losses),
+                        "IOU": np.nanmean(ious),
+                        "AUC": mean_auc})
             print("summary writer add train loss: " + str(np.nanmean(losses)))
             print("Finish epoch {}, time elapsed {}".format(epoch, time.time() - ts))
 
@@ -209,10 +218,26 @@ if __name__ == '__main__':
     torch.cuda.manual_seed(1337)
     np.random.seed(1337)
     random.seed(1337)
+    parser = argparse.ArgumentParser(description='Description of your program')
+    parser.add_argument('-lr','--lr', help='learning rate', default = 1e-3) # required=True ,
+    parser.add_argument('-wd','--w_decay', help='weight decay (regularization)', default=0) #required=True ,
+    parser.add_argument('-m','--momentum', help='momentum (Adam)',  default=0)#required=True ,
+    parser.add_argument('-ss','--step_size', help='Description for bar argument',  default=30)#required=True ,
+    parser.add_argument('-g','--gamma', help='Description for foo argument', default=0.5)#required=True ,
+    parser.add_argument('-bs','--batch_size', help='Description for bar argument', default=8)#required=True ,
+    parser.add_argument('-e','--epochs', help='Description for bar argument', default=50)#required=True ,
+    parser.add_argument('-dp','--datapath', help='Description for bar argument', default="/home/sashank/deepl_project/data/dataset/test/")#required=True ,
+    parser.add_argument('-rp','--runspath', help='Description for bar argument', default="/home/sashank/deepl_project/cloth-segmentation/train_runs")#required=True ,
+    parser.add_argument('-t','--transform', help='Description for bar argument', default=True)#required=True ,
+    parser.add_argument('-nc','--n_class', help='Description for bar argument', default=2)#required=True ,
+    parser.add_argument('-nf','--n_feature', help='Description for bar argument', default=2)#required=True ,
+    parser.add_argument('-ds','--datasize', help='Description for bar argument', default="")#required=True ,
 
-    with open('configs/segmentation.json', 'r') as f:
-        cfgs = json.loads(f.read())
-    print(json.dumps(cfgs, sort_keys=True, indent=1))
+    args = vars(parser.parse_args())
 
-    t = TrainSeg(cfgs)
+    # with open('configs/segmentation.json', 'r') as f:
+    #     cfgs = json.loads(f.read())
+    # print(json.dumps(cfgs, sort_keys=True, indent=1))
+    wandb.init(project="11785project", entity="stirumal", config=args)
+    t = TrainSeg(args)
     t.train()
