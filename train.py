@@ -113,7 +113,6 @@ class TrainSeg(BaseTrain):
             self.model = self.model.cuda()
         
         self.criterion = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(20.).to('cuda'))
-        
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.cfgs["lr"], weight_decay=self.cfgs["w_decay"])
         self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=self.cfgs["step_size"], gamma=self.cfgs["gamma"])  # decay LR by a factor of 0.5 every 30 epochs
 
@@ -143,7 +142,7 @@ class TrainSeg(BaseTrain):
 
                 if iter % 10 == 0:
                     print("epoch%d, iter%d, loss: %0.5f" % (epoch, iter, loss))
-                wandb.log({"loss_step":loss})
+                wandb.log({"train_loss_step":loss})
 
                 batch_maps, batch_ious, batch_aucs = self.metrics(outputs, labels)
                 maps += batch_maps
@@ -160,19 +159,16 @@ class TrainSeg(BaseTrain):
             names = ['loss', 'MAP', 'meanIOU', 'meanAUC']
             values = [np.nanmean(losses), pixel_map, np.nanmean(ious), mean_auc]
             # self.tboard(self.train_writer, names, values, epoch)
-            wandb.log({"loss_epoch": np.nanmean(losses),
-                        "IOU": np.nanmean(ious),
-                        "AUC": mean_auc})
-            print("summary writer add train loss: " + str(np.nanmean(losses)))
+            wandb.log({"train_loss_epoch": np.nanmean(losses),
+                        "train_IOU": np.nanmean(ious),
+                        "train_AUC": mean_auc})
             print("Finish epoch {}, time elapsed {}".format(epoch, time.time() - ts))
 
-            if epoch % 20 == 0:
+            if epoch % 1 == 0:
                 #if self.datasize == None or self.datasize > 8:
                 self.val(epoch)
                 torch.save(self.model.state_dict(), os.path.join(self.chkpnts_path, "%s_epoch%d" % (self.run_id, epoch)))
-        self.train_writer.close()
-        self.val_writer.close()
-
+            
     def val(self, epoch):
         self.model.eval()
         num_batches = len(self.val_loader)
@@ -190,10 +186,12 @@ class TrainSeg(BaseTrain):
                 maps += batch_maps
                 ious += batch_ious
                 aucs += batch_aucs
-
-            if epoch % 50 == 0 and iter == 0:
+            i=0
+            if epoch % 20 == 0 and iter == 0:
                 hm = torch.sigmoid(outputs[0, :, :, :])
-                self.val_writer.add_image('hm_%d' % epoch, hm, epoch)
+                images = wandb.Image(hm, caption="hm_"+str(epoch))
+                wandb.log({"results":images})
+                i+=1
 
             del inputs,outputs,labels,batch
             torch.cuda.empty_cache()
@@ -203,15 +201,11 @@ class TrainSeg(BaseTrain):
         ious = np.nanmean(ious, axis=1)
         pixel_map = np.nanmean(maps)
         mean_auc = np.nanmean(aucs)
+        wandb.log({"val_loss":np.nanmean(losses)})
+        wandb.log({"val_pixel_map":pixel_map})
+        wandb.log({"val_meanIOU":np.nanmean(ious)})
+        wandb.log({"val_meanAUC":mean_auc})
         print("epoch{}, pix_map: {}, meanAUC: {}, meanIoU: {}, IoUs: {}".format(epoch, pixel_map, mean_auc, np.nanmean(ious), ious))
-        self.iou_scores[epoch] = ious
-        np.save(os.path.join(self.score_dir, "meanIOU"), self.iou_scores)
-        self.pixel_scores[epoch] = pixel_map
-        np.save(os.path.join(self.score_dir, "PixelMAP"), self.pixel_scores)
-
-        names = ['loss', 'MAP', 'meanIOU', 'meanAUC']
-        values = [np.nanmean(losses), pixel_map, np.nanmean(ious), mean_auc]
-        self.tboard(self.val_writer, names, values, epoch)
 
 if __name__ == '__main__':
     torch.manual_seed(1337)
