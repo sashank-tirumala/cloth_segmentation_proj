@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=96:00:00
 #SBATCH --gres=gpu:4
-#SBATCH --mem=16G
+#SBATCH --mem=64G
 #SBATCH --nodelist=compute-0-[9]
 #SBATCH --mail-type=END,FAIL             # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=stirumal@andrew.cmu.edu     # Where to send mail
