@@ -15,4 +15,5 @@ This directory contains code for training the segmentation network.
 1. `ssh compute-0-7` Change the compute number as required
 2. `cd /scratch/sashank/11785_project`
 3. ` rsync -av sashank@128.2.176.255:/media/YertleDrive4/layer_grasp/dataset ./`
-4. Now the datasets are synced up. We need to sync up the code
+4. Now the datasets are synced up. We need to sync up the code `cd /home/stirumal/ws/cloth_segmentation_proj`, `git pull origin main`
+5. 
