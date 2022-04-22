@@ -7,10 +7,11 @@ import sklearn.metrics
 from matplotlib import pyplot as plt
 
 def normalize(img_depth):
+    img_depth = img_depth.float()
     min_I = img_depth.min()
     max_I = img_depth.max()
     img_depth[img_depth<=min_I] = min_I
-    img_depth = (img_depth - min_I) // (max_I - min_I)
+    img_depth = (img_depth - min_I) / (max_I - min_I)
     return img_depth
 
 def compute_map(gt, pred, n_class, average=None):
