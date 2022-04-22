@@ -213,19 +213,19 @@ if __name__ == '__main__':
     np.random.seed(1337)
     random.seed(1337)
     parser = argparse.ArgumentParser(description='Description of your program')
-    parser.add_argument('-lr','--lr', help='learning rate', default = 1e-3) # required=True ,
-    parser.add_argument('-wd','--w_decay', help='weight decay (regularization)', default=0) #required=True ,
-    parser.add_argument('-m','--momentum', help='momentum (Adam)',  default=0)#required=True ,
-    parser.add_argument('-ss','--step_size', help='Description for bar argument',  default=30)#required=True ,
-    parser.add_argument('-g','--gamma', help='Description for foo argument', default=0.5)#required=True ,
-    parser.add_argument('-bs','--batch_size', help='Description for bar argument', default=8)#required=True ,
-    parser.add_argument('-e','--epochs', help='Description for bar argument', default=50)#required=True ,
-    parser.add_argument('-dp','--datapath', help='Description for bar argument', default="/home/sashank/deepl_project/data/dataset/test/")#required=True ,
-    parser.add_argument('-rp','--runspath', help='Description for bar argument', default="/home/sashank/deepl_project/cloth-segmentation/train_runs")#required=True ,
-    parser.add_argument('-t','--transform', help='Description for bar argument', default=True)#required=True ,
-    parser.add_argument('-nc','--n_class', help='Description for bar argument', default=2)#required=True ,
-    parser.add_argument('-nf','--n_feature', help='Description for bar argument', default=2)#required=True ,
-    parser.add_argument('-ds','--datasize', help='Description for bar argument', default="")#required=True ,
+    parser.add_argument('-lr','--lr', type=float, help='learning rate', default = 1e-3) # required=True ,
+    parser.add_argument('-wd','--w_decay', type=float, help='weight decay (regularization)', default=0) #required=True ,
+    parser.add_argument('-m','--momentum', type=float, help='momentum (Adam)',  default=0)#required=True ,
+    parser.add_argument('-ss','--step_size', type=int, help='Description for bar argument',  default=30)#required=True ,
+    parser.add_argument('-g','--gamma', type=float, help='Description for foo argument', default=0.5)#required=True ,
+    parser.add_argument('-bs','--batch_size', type=int, help='Description for bar argument', default=8)#required=True ,
+    parser.add_argument('-e','--epochs', type=int, help='Description for bar argument', default=50)#required=True ,
+    parser.add_argument('-dp','--datapath', type=str, help='Description for bar argument', default="/home/sashank/deepl_project/data/dataset/test/")#required=True ,
+    parser.add_argument('-rp','--runspath', type=str, help='Description for bar argument', default="/home/sashank/deepl_project/cloth-segmentation/train_runs")#required=True ,
+    parser.add_argument('-t','--transform', type=bool, help='Description for bar argument', default=True)#required=True ,
+    parser.add_argument('-nc','--n_class', type=int, help='Description for bar argument', default=2)#required=True ,
+    parser.add_argument('-nf','--n_feature', type=int, help='Description for bar argument', default=2)#required=True ,
+    parser.add_argument('-ds','--datasize', type=str, help='Description for bar argument', default="")#required=True ,
 
     args = vars(parser.parse_args())
 
